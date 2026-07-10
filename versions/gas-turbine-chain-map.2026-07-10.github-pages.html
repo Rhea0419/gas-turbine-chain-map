@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>燃气轮机全产业链图谱</title>
+  <style>
+    :root {
+      --page-w: 210mm;
+      --page-h: 297mm;
+      --ink: #0b2352;
+      --muted: #56677e;
+      --line: #d8e2ef;
+      --blue: #0b4da2;
+      --blue2: #1b73d1;
+      --green: #0b8a51;
+      --orange: #ea6c16;
+      --soft-blue: #f0f7ff;
+      --soft-green: #eef9f3;
+      --soft-orange: #fff3ea;
+      font-family: "Arial Unicode MS", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #eef2f6; color: var(--ink); }
+    body { padding: 18px 0; }
+    .sheet {
+      width: var(--page-w);
+      height: var(--page-h);
+      margin: 0 auto 18px;
+      padding: 10mm 11mm;
+      background: #fff;
+      border: 1px solid #d7dde7;
+      box-shadow: 0 10px 28px rgba(13, 50, 96, .10);
+      overflow: hidden;
+      page-break-after: always;
+    }
+    .sheet:last-child { page-break-after: auto; }
+    .chain-sheet {
+      padding: 7mm 8mm;
+    }
+    h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 29px;
+      line-height: 1.1;
+      letter-spacing: 1px;
+      color: #061f58;
+      font-weight: 900;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: 1.64fr .68fr 1.35fr;
+      align-items: center;
+      gap: 0;
+      margin: 6mm auto 2mm;
+      width: 92%;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .flow span {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 8mm;
+      padding: 0 5mm 3mm 0;
+      white-space: nowrap;
+      background: transparent;
+    }
+    .flow span:nth-child(1) { color: #277dd9; }
+    .flow span:nth-child(2) { color: #ec6818; }
+    .flow span:nth-child(3) { color: #d98300; }
+    .flow span::before {
+      content: "";
+      position: absolute;
+      left: 5mm;
+      right: 7mm;
+      bottom: 1.2mm;
+      height: 1.5mm;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 5px rgba(0,0,0,.12);
+    }
+    .flow span::after {
+      content: "";
+      position: absolute;
+      right: 1.8mm;
+      bottom: -.05mm;
+      width: 0;
+      height: 0;
+      border-top: 2.3mm solid transparent;
+      border-bottom: 2.3mm solid transparent;
+      border-left: 6mm solid currentColor;
+      color: inherit;
+    }
+    .hero-figure {
+      position: relative;
+      margin: 0;
+      padding: 3mm 4mm 2mm;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fff, #f8fbff);
+    }
+    .machine-wrap {
+      position: relative;
+      width: min(100%, 121mm);
+      height: 69mm;
+      margin: 0 auto;
+    }
+    .machine-wrap img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+    .leader-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .leader-overlay .leader-line {
+      fill: none;
+      stroke: #155faa;
+      stroke-width: .38;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 1.2px rgba(255,255,255,.9));
+    }
+    .leader-overlay .leader-dot {
+      fill: #fff;
+      stroke: #155faa;
+      stroke-width: .38;
+    }
+    .leader-overlay .leader-text {
+      fill: #0b3f78;
+      font-size: 3.05px;
+      font-weight: 900;
+      letter-spacing: .1px;
+      paint-order: stroke;
+      stroke: rgba(255,255,255,.95);
+      stroke-width: .75px;
+      stroke-linejoin: round;
+    }
+    .leader-overlay .hot { stroke: #e77218; }
+    .leader-overlay .hot-dot { stroke: #e77218; }
+    .leader-overlay .hot-text { fill: #a64206; }
+    .part-tags {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2mm;
+      margin-top: 2mm;
+    }
+    .part-tags span {
+      padding: 2mm 1mm;
+      border: 1px solid #cfddeb;
+      border-radius: 8px;
+      background: #f6fbff;
+      color: #113d78;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .desc {
+      margin: 4mm 0 0;
+      padding: 3mm 4mm;
+      border-radius: 10px;
+      border: 1px solid #d8e4f1;
+      background: #f7fbff;
+      color: #213f61;
+      font-size: 12px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+    .sections { display: grid; gap: 3mm; margin-top: 4mm; }
+    .block {
+      display: grid;
+      grid-template-columns: 18mm 1fr;
+      gap: 2.5mm;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 2.5mm;
+      background: #fff;
+    }
+    .block-main { padding: 0; min-width: 0; }
+    .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm; }
+    .cols.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .mini {
+      min-height: 15mm;
+      padding: 2.4mm;
+      border: 1px solid #dce8f4;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 12.8px;
+      line-height: 1.42;
+    }
+    .mini b { display: block; margin-bottom: 1mm; color: #123d78; font-size: 13.6px; }
+    .principle-note {
+      margin-top: 2mm;
+      padding: 2mm 2.5mm;
+      border-radius: 8px;
+      color: #193d65;
+      background: var(--soft-blue);
+      border: 1px solid #d2e5f9;
+      font-size: 12.8px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+    .structure-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm; }
+    .structure-grid .mini { min-height: 12mm; }
+    .page-title { margin: 0 0 3mm; }
+    .page-title h2 { margin: 0; color: #061f58; text-align: center; font-size: 24px; line-height: 1.12; }
+    .chain { display: grid; gap: 2.5mm; }
+    .row {
+      display: grid;
+      grid-template-columns: 18mm 1fr;
+      gap: 2.5mm;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 2.2mm;
+      background: #fff;
+    }
+    .side {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 10px;
+      color: #fff;
+      padding: 2.2mm 1.5mm;
+      font-weight: 900;
+    }
+    .side b { display: block; font-size: 11.5px; line-height: 1; margin-bottom: 1.5mm; }
+    .side span { display: block; font-size: 11.5px; line-height: 1.28; }
+    .side.up { background: linear-gradient(145deg, #0b4aa2, #2874d4); }
+    .side.mid { background: linear-gradient(145deg, #087142, #13a263); }
+    .side.down { background: linear-gradient(145deg, #e05b13, #f18a23); }
+    .side.def { background: linear-gradient(145deg, #0b4aa2, #2874d4); }
+    .side.principle { background: linear-gradient(145deg, #0f6ca8, #28a7d4); }
+    .side.structure { background: linear-gradient(145deg, #31518f, #687ec5); }
+    .row-main { display: grid; gap: 1.5mm; }
+    .group {
+      border: 1px solid #dbe6f2;
+      border-radius: 9px;
+      background: #fbfdff;
+      padding: 1.5mm;
+    }
+    .group h3 {
+      margin: 0 0 1.3mm;
+      color: #123b78;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .items { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.4mm; }
+    .items.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .items.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .tile {
+      min-height: 18mm;
+      padding: 1.3mm;
+      border-radius: 8px;
+      border: 1px solid #dce7f3;
+      background: #fff;
+      color: #223f61;
+      font-size: 12px;
+      line-height: 1.26;
+      text-align: center;
+    }
+    .thumb {
+      height: 8.8mm;
+      margin-bottom: .8mm;
+      border-radius: 6px;
+      border: 1px solid #d4dfeb;
+      background-repeat: no-repeat;
+      background-color: #fff;
+      overflow: hidden;
+    }
+    .thumb.up { background-image: url("assets/gas-turbine/upstream-sprite.png"); background-size: 600% 200%; }
+    .thumb.mid { background-image: url("assets/gas-turbine/midstream-sprite.png"); background-size: 300% 300%; }
+    .thumb.down { background-image: url("assets/gas-turbine/downstream-sprite.png"); background-size: 300% 300%; }
+    .c1 { background-position: 0% 0%; }
+    .c2 { background-position: 20% 0%; }
+    .c3 { background-position: 40% 0%; }
+    .c4 { background-position: 60% 0%; }
+    .c5 { background-position: 80% 0%; }
+    .c6 { background-position: 100% 0%; }
+    .c7 { background-position: 0% 100%; }
+    .c8 { background-position: 20% 100%; }
+    .c9 { background-position: 40% 100%; }
+    .c10 { background-position: 60% 100%; }
+    .c11 { background-position: 80% 100%; }
+    .c12 { background-position: 100% 100%; }
+    .g1 { background-position: 0% 0%; }
+    .g2 { background-position: 50% 0%; }
+    .g3 { background-position: 100% 0%; }
+    .g4 { background-position: 0% 50%; }
+    .g5 { background-position: 50% 50%; }
+    .g6 { background-position: 100% 50%; }
+    .g7 { background-position: 0% 100%; }
+    .g8 { background-position: 50% 100%; }
+    .g9 { background-position: 100% 100%; }
+    .note {
+      padding: 1.6mm 2mm;
+      border-radius: 8px;
+      border: 1px solid #d7e6f6;
+      background: var(--soft-blue);
+      color: #24435f;
+      font-size: 12px;
+      line-height: 1.36;
+      font-weight: 700;
+    }
+    .note.green { border-color: #cfeadd; background: var(--soft-green); }
+    .note.orange { border-color: #f3dccd; background: var(--soft-orange); }
+    .chain-sheet .page-title { margin-bottom: 4mm; }
+    .chain-sheet .page-title h2 { font-size: 23px; }
+    .chain-sheet .chain {
+      height: 252mm;
+      grid-template-rows: 1.06fr 1.02fr 1.02fr;
+      gap: 2.4mm;
+    }
+    .chain-sheet .row {
+      grid-template-columns: 18mm 1fr;
+      gap: 2mm;
+      padding: 1.7mm;
+      border-radius: 11px;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .chain-sheet .side {
+      padding: 2mm 1mm;
+      border-radius: 9px;
+    }
+    .chain-sheet .side b {
+      font-size: 11px;
+      margin-bottom: 1mm;
+    }
+    .chain-sheet .side span {
+      font-size: 11px;
+      line-height: 1.18;
+    }
+    .chain-sheet .row-main {
+      gap: 1.3mm;
+      min-height: 0;
+    }
+    .chain-sheet .group {
+      padding: 1.25mm;
+      border-radius: 8px;
+    }
+    .chain-sheet .group h3 {
+      margin-bottom: .8mm;
+      font-size: 12.5px;
+    }
+    .chain-sheet .items { gap: 1.3mm; }
+    .chain-sheet .tile {
+      min-height: 20mm;
+      padding: 1mm;
+      border-radius: 7px;
+      font-size: 10.6px;
+      line-height: 1.18;
+    }
+    .chain-sheet .thumb {
+      width: 78%;
+      height: 13.4mm;
+      margin: 0 auto .6mm;
+      background-color: #fff;
+    }
+    .chain-sheet .items.three .thumb { width: 86%; }
+    .chain-sheet .items.four .thumb { width: 84%; }
+    .chain-sheet .note {
+      padding: 1.15mm 1.6mm;
+      font-size: 11px;
+      line-height: 1.24;
+    }
+    @media print {
+      @page { size: A4; margin: 0; }
+      html, body { background: #fff; padding: 0; }
+      .sheet { margin: 0; border: 0; box-shadow: none; width: 210mm; height: 297mm; }
+    }
+  </style>
+</head>
+<body>
+  <section class="sheet">
+    <h1>燃气轮机全产业链图谱</h1>
+    <div class="flow">
+      <span>空气流入</span>
+      <span>高温燃气流动</span>
+      <span>能量输出（机械能 / 电能）</span>
+    </div>
+    <figure class="hero-figure">
+      <div class="machine-wrap">
+        <img src="assets/gas-turbine/gas-turbine-redraw.png" alt="高清燃气轮机剖面示意图">
+        <svg class="leader-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="燃气轮机主要部件牵引标注">
+          <line class="leader-line" x1="7.6" y1="17" x2="7.6" y2="30" />
+          <circle class="leader-dot" cx="7.6" cy="30" r=".85" />
+          <text class="leader-text" x="7.6" y="14" text-anchor="middle">进气口</text>
+
+          <line class="leader-line" x1="27.4" y1="15" x2="27.4" y2="34" />
+          <circle class="leader-dot" cx="27.4" cy="34" r=".85" />
+          <text class="leader-text" x="27.4" y="12" text-anchor="middle">压气机</text>
+
+          <line class="leader-line hot" x1="44.2" y1="10" x2="44.2" y2="20" />
+          <circle class="leader-dot hot-dot" cx="44.2" cy="20" r=".85" />
+          <text class="leader-text hot-text" x="44.2" y="7" text-anchor="middle">燃料入口</text>
+
+          <line class="leader-line hot" x1="53.6" y1="13" x2="53.6" y2="27" />
+          <circle class="leader-dot hot-dot" cx="53.6" cy="27" r=".85" />
+          <text class="leader-text hot-text" x="53.6" y="10" text-anchor="middle">燃烧室</text>
+
+          <line class="leader-line hot" x1="67.8" y1="15" x2="67.8" y2="38" />
+          <circle class="leader-dot hot-dot" cx="67.8" cy="38" r=".85" />
+          <text class="leader-text hot-text" x="67.8" y="12" text-anchor="middle">涡轮</text>
+
+          <line class="leader-line hot" x1="83.6" y1="18" x2="83.6" y2="35" />
+          <circle class="leader-dot hot-dot" cx="83.6" cy="35" r=".85" />
+          <text class="leader-text hot-text" x="83.6" y="15" text-anchor="middle">发电机</text>
+        </svg>
+      </div>
+    </figure>
+    <p class="desc">燃气轮机被誉为装备制造业“皇冠上的明珠”，是以连续流动气体为工质的高端动力装备，产业链覆盖特种材料、精密制造、能源、军工等核心领域，2025年全球市场规模约226亿美元。</p>
+
+    <div class="sections">
+      <article class="block">
+        <div class="side def"><div><b>一</b><span>核心定义</span></div></div>
+        <div class="block-main">
+          <div class="cols">
+            <div class="mini"><b>定义</b>燃气轮机是一种把燃料燃烧产生的高温高压气体，转化为机械能和电能的热力设备。</div>
+            <div class="mini"><b>常见燃料</b>天然气，也可用氢气掺烧、航空煤油等。</div>
+            <div class="mini"><b>典型用途</b>发电、工业驱动、分布式能源、舰船和航空动力衍生设备。</div>
+          </div>
+        </div>
+      </article>
+      <article class="block">
+        <div class="side principle"><div><b>二</b><span>工作原理</span></div></div>
+        <div class="block-main">
+          <div class="cols five">
+            <div class="mini"><b>1 进气</b>空气进入压气机</div>
+            <div class="mini"><b>2 压缩</b>空气被压缩升温</div>
+            <div class="mini"><b>3 燃烧</b>与燃料混合燃烧，产生高温燃气</div>
+            <div class="mini"><b>4 做功</b>高温燃气推动涡轮旋转</div>
+            <div class="mini"><b>5 发电/驱动</b>带动发电机或压缩机输出功率</div>
+          </div>
+          <div class="principle-note">本质上就是：压缩空气 → 燃烧放热 → 高温燃气推动涡轮做功。</div>
+        </div>
+      </article>
+      <article class="block">
+        <div class="side structure"><div><b>三</b><span>核心结构</span></div></div>
+        <div class="block-main">
+          <div class="structure-grid">
+            <div class="mini"><b>压气机</b>提高空气压力</div>
+            <div class="mini"><b>燃烧室</b>将燃料化学能转为热能</div>
+            <div class="mini"><b>涡轮</b>把热能转为机械能</div>
+            <div class="mini"><b>发电机</b>输出电能</div>
+            <div class="mini"><b>余热锅炉（可选）</b>回收尾气热量，提高系统效率</div>
+            <div class="mini"><b>控制系统</b>调节温度、转速和负荷</div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sheet chain-sheet">
+    <div class="page-title"><h2>产业链结构</h2></div>
+    <div class="chain">
+      <article class="row">
+        <div class="side up"><div><b>四</b><span>上游材料</span></div></div>
+        <div class="row-main">
+          <div class="group">
+            <h3>核心材料</h3>
+            <div class="items">
+              <div class="tile"><div class="thumb up c1"></div>镍基/钴基<br>高温合金</div>
+              <div class="tile"><div class="thumb up c2"></div>单晶<br>高温合金</div>
+              <div class="tile"><div class="thumb up c3"></div>钛合金</div>
+              <div class="tile"><div class="thumb up c4"></div>陶瓷基<br>复合材料</div>
+              <div class="tile"><div class="thumb up c5"></div>热障涂层<br>材料</div>
+              <div class="tile"><div class="thumb up c6"></div>高强度<br>特种钢</div>
+            </div>
+          </div>
+          <div class="group">
+            <h3>核心部件</h3>
+            <div class="items">
+              <div class="tile"><div class="thumb up c7"></div>涡轮叶片<br>整机价值占比约35%</div>
+              <div class="tile"><div class="thumb up c8"></div>压气机叶片/机匣</div>
+              <div class="tile"><div class="thumb up c9"></div>燃烧室</div>
+              <div class="tile"><div class="thumb up c10"></div>涡轮盘</div>
+              <div class="tile"><div class="thumb up c11"></div>控制系统</div>
+              <div class="tile"><div class="thumb up c12"></div>精密轴承与<br>密封件</div>
+            </div>
+          </div>
+          <div class="note">上游小结：价值与壁垒集中于热端部件，高温合金占整机成本30%-40%，叶片成本60%-70%，是国产替代核心方向，直接决定燃机效率上限。</div>
+        </div>
+      </article>
+
+      <article class="row">
+        <div class="side mid"><div><b>五</b><span>中游设备<br>及制造</span></div></div>
+        <div class="row-main">
+          <div class="group">
+            <h3>产品谱系</h3>
+            <div class="items three">
+              <div class="tile"><div class="thumb mid g1"></div>重型燃气轮机<br>（E/F/H/J级）</div>
+              <div class="tile"><div class="thumb mid g2"></div>中型工业燃机</div>
+              <div class="tile"><div class="thumb mid g3"></div>轻型航空型<br>燃气轮机</div>
+            </div>
+          </div>
+          <div class="group">
+            <h3>核心环节</h3>
+            <div class="items">
+              <div class="tile"><div class="thumb mid g4"></div>气动设计</div>
+              <div class="tile"><div class="thumb mid g5"></div>精密铸造</div>
+              <div class="tile"><div class="thumb mid g6"></div>五轴数控加工</div>
+              <div class="tile"><div class="thumb mid g7"></div>总装测试</div>
+              <div class="tile"><div class="thumb mid g8"></div>系统集成</div>
+              <div class="tile"><div class="thumb mid g9"></div>配套设备：余热锅炉、发电机、脱硝装置等辅机</div>
+            </div>
+          </div>
+          <div class="note green">中游小结：全球寡头垄断，前三厂商合计占全球75%-85%份额，高端重型燃机市场占率超85%；国内已实现重型燃机自主突破，技术攻坚持续推进。据中商产业白皮书，2025年全球供需缺口30-40GW，交付周期普遍延至2030年。</div>
+        </div>
+      </article>
+
+      <article class="row">
+        <div class="side down"><div><b>六</b><span>下游应用</span></div></div>
+        <div class="row-main">
+          <div class="group">
+            <h3>电力发电（约65%-70%）</h3>
+            <div class="items four">
+              <div class="tile"><div class="thumb down g1"></div>联合循环电站</div>
+              <div class="tile"><div class="thumb down g2"></div>电网调峰电源</div>
+              <div class="tile"><div class="thumb down g3"></div>分布式三联供</div>
+              <div class="tile"><div class="thumb down g4"></div>AI数据中心电源</div>
+            </div>
+          </div>
+          <div class="group">
+            <h3>油气化工（约20%-25%）</h3>
+            <div class="items three">
+              <div class="tile"><div class="thumb down g5"></div>海上油气平台</div>
+              <div class="tile"><div class="thumb down g6"></div>天然气管线增压</div>
+              <div class="tile"><div class="thumb down g7"></div>炼化厂压缩机组动力</div>
+            </div>
+          </div>
+          <div class="group">
+            <h3>船舶军工及其他（约5%-10%）</h3>
+            <div class="items three">
+              <div class="tile"><div class="thumb down g8"></div>大型舰船主动力</div>
+              <div class="tile"><div class="thumb down g9"></div>舰艇发电机组</div>
+              <div class="tile"><div class="thumb down g9"></div>燃机应用拓展</div>
+            </div>
+          </div>
+          <div class="note orange">下游小结：发电为核心应用场景，新能源消纳拉动调峰需求，AI数据中心为核心增量，燃机是新型电力系统关键支撑。</div>
+        </div>
+      </article>
+    </div>
+  </section>
+</body>
+</html>
