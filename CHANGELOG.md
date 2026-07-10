@@ -2,6 +2,8 @@
 
 ## 2026-07-10
 
+- 再次调整第二页高度分配：上游和中游略收紧，下游部分加高，修复“下游小结”在网页/PDF中被裁切的问题。
+- 备份新版 HTML 到 `versions/gas-turbine-chain-map.2026-07-10-downstream-fit.html`。
 - 替换“燃烧室”配图为新的剖面结构图。
 - 调整第二页产业链结构的垂直排版，减少底部留白，确保“船舶军工及其他”和“下游小结”完整显示。
 - 备份新版 HTML 到 `versions/gas-turbine-chain-map.2026-07-10-combustion-layout.html`。
