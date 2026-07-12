@@ -3,10 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=gas-turbine-chain-map.html">
-  <title>燃气轮机全产业链图谱</title>
+  <title>产业链图谱入口</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: #122033;
+      background: linear-gradient(135deg, #f5f8fb, #e8f0f7);
+    }
+    main {
+      width: min(860px, calc(100vw - 36px));
+      padding: 34px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .86);
+      box-shadow: 0 18px 60px rgba(36, 63, 97, .14);
+      border: 1px solid rgba(85, 120, 160, .18);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0 0 26px;
+      color: #607087;
+      line-height: 1.7;
+    }
+    .links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    a {
+      display: block;
+      min-height: 132px;
+      padding: 22px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: #14243a;
+      background: #fff;
+      border: 1px solid rgba(68, 108, 152, .18);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    a:hover {
+      transform: translateY(-2px);
+      border-color: rgba(26, 143, 220, .48);
+      box-shadow: 0 16px 34px rgba(27, 107, 165, .14);
+    }
+    strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+    span {
+      color: #6d7d91;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    @media (max-width: 700px) {
+      .links { grid-template-columns: 1fr; }
+      main { padding: 24px; }
+    }
+  </style>
 </head>
 <body>
-  <p><a href="gas-turbine-chain-map.html">打开燃气轮机全产业链图谱</a></p>
+  <main>
+    <h1>产业链图谱入口</h1>
+    <p>用于访问当前已发布的图谱页面和备份版本。</p>
+    <div class="links">
+      <a href="energy-supply-chain-3d-prototype.html">
+        <strong>电力能源产业链智能图谱 2D 版</strong>
+        <span>风电、光伏、储能、海上风电/电气设备等类别的 2D 主图与部件页签交互。</span>
+      </a>
+      <a href="gas-turbine-chain-map.html">
+        <strong>燃气轮机全产业链图谱</strong>
+        <span>A4 双页排版，包含燃机定义、工作原理、核心结构和产业链结构。</span>
+      </a>
+    </div>
+  </main>
 </body>
 </html>
