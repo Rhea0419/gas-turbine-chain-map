@@ -1,0 +1,1717 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>供应链图谱V3.0</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020b14;
+      --panel: rgba(4, 19, 32, .76);
+      --panel2: rgba(8, 30, 48, .72);
+      --line: rgba(70, 181, 247, .22);
+      --line2: rgba(50, 184, 255, .62);
+      --text: #eaf7ff;
+      --muted: #8fa8bb;
+      --cyan: #23c3ff;
+      --blue: #2789ff;
+      --green: #62db9a;
+      --amber: #ffc44d;
+      --orange: #ff9b3d;
+      --red: #ff5d72;
+      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+    body {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 52% 38%, rgba(16, 101, 164, .32), transparent 42rem),
+        linear-gradient(rgba(57, 144, 205, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57, 144, 205, .035) 1px, transparent 1px),
+        linear-gradient(150deg, #041522 0%, #020b14 52%, #010711 100%);
+      background-size: auto, 40px 40px, 40px 40px, auto;
+    }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 76px minmax(720px, 1fr) 330px;
+      grid-template-rows: 58px minmax(0, 1fr) 198px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(7, 22, 36, .6), rgba(2, 9, 18, .92));
+    }
+
+    .rail {
+      grid-row: 1 / 4;
+      border-right: 1px solid rgba(72, 171, 233, .18);
+      background: rgba(2, 13, 25, .84);
+      display: grid;
+      grid-template-rows: 64px 1fr 64px;
+      z-index: 6;
+    }
+    .logo {
+      display: grid;
+      place-items: center;
+    }
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 25%, #4be0ff, #0578ef 72%);
+      box-shadow: 0 0 22px rgba(35, 195, 255, .34);
+      font-weight: 900;
+      color: #00111f;
+    }
+    .nav {
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      padding-top: 12px;
+    }
+    .nav-btn {
+      width: 100%;
+      height: 74px;
+      border: 0;
+      border-left: 3px solid transparent;
+      color: #8097ad;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .nav-btn b { font-size: 19px; line-height: 1; }
+    .nav-btn.active {
+      color: #5bd8ff;
+      border-left-color: var(--cyan);
+      background: linear-gradient(90deg, rgba(35, 195, 255, .18), transparent);
+      box-shadow: inset 0 0 24px rgba(35, 195, 255, .04);
+    }
+
+    .topbar {
+      grid-column: 2 / 4;
+      border-bottom: 1px solid rgba(72, 171, 233, .16);
+      background: rgba(2, 13, 25, .58);
+      display: grid;
+      grid-template-columns: minmax(270px, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      padding: 0 18px 0 24px;
+      z-index: 5;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-shadow: 0 0 22px rgba(35, 195, 255, .2);
+    }
+    .tabs, .toolbar, .segmented {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tabs {
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .topbar .tabs { display: none; }
+    .tab, .tool, .segment, .mode {
+      height: 34px;
+      border: 1px solid rgba(94, 181, 235, .22);
+      color: #9fb5c8;
+      background: rgba(4, 18, 30, .64);
+      border-radius: 8px;
+      padding: 0 14px;
+      white-space: nowrap;
+    }
+    .tab.active, .segment.active, .mode.active, .tool.active {
+      color: #eaf8ff;
+      border-color: rgba(35, 195, 255, .72);
+      background: rgba(20, 122, 206, .32);
+      box-shadow: inset 0 0 18px rgba(35, 195, 255, .12), 0 0 18px rgba(35, 195, 255, .08);
+    }
+    .tab.framework {
+      position: relative;
+      min-width: max-content;
+      border-radius: 999px;
+      padding: 0 16px;
+      background:
+        linear-gradient(90deg, rgba(35, 195, 255, .08), rgba(98, 219, 154, .04)),
+        rgba(4, 18, 30, .62);
+    }
+    .tab.framework::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(35, 195, 255, .72), transparent);
+    }
+    .tool {
+      width: 34px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+    }
+    select.mode { display: none; }
+
+    .stage {
+      grid-column: 2;
+      grid-row: 2;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .stage::after {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 8%;
+      bottom: 18px;
+      height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(35, 195, 255, .36), transparent);
+      pointer-events: none;
+    }
+    .stage::before {
+      content: "";
+      position: absolute;
+      left: 4%;
+      right: 5%;
+      top: 10%;
+      bottom: 10%;
+      border: 1px solid rgba(35, 195, 255, .08);
+      border-radius: 24px;
+      background:
+        radial-gradient(ellipse at 42% 54%, rgba(35, 195, 255, .12), transparent 48%),
+        linear-gradient(130deg, transparent 0 58%, rgba(31, 125, 211, .08) 58% 68%, transparent 68%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+    .stage.assembled-structure::before { opacity: 1; }
+    .stage.wind-structure .model-wrap {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .stage.wind-structure.three-fallback .model-wrap {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .stage.wind-structure.three-fallback .scene-viewport {
+      opacity: .42;
+      filter: saturate(.78);
+    }
+    .stage.wind-structure.three-ready .model-wrap {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .model-wrap {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 14px 18px 10px;
+      perspective: 1200px;
+    }
+    .model-img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter:
+        saturate(1.08)
+        contrast(1.04)
+        drop-shadow(0 32px 50px rgba(0, 0, 0, .46))
+        drop-shadow(0 0 22px rgba(35, 195, 255, .18));
+      transform-origin: 50% 55%;
+      transition: transform .32s ease, filter .28s ease;
+      user-select: none;
+      pointer-events: none;
+    }
+    .stage.assembled-structure .model-img {
+      opacity: 0;
+      transform: scale(.96);
+    }
+    .stage.exploded .model-img {
+      opacity: 0;
+      transform: scale(.96);
+      filter: saturate(1.14) contrast(1.05) brightness(1.03) drop-shadow(0 35px 56px rgba(0,0,0,.48));
+    }
+    .stage.rotate .model-img { animation: breathe 4s ease-in-out infinite alternate; }
+    @keyframes breathe { from { transform: translateX(-5px) scale(1.01); } to { transform: translateX(5px) scale(1.035); } }
+
+    .assembly {
+      position: absolute;
+      inset: 26px 22px 20px;
+      transform-style: preserve-3d;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(.98);
+      transition: transform .45s ease, opacity .24s ease;
+    }
+    .assembly::before {
+      content: "";
+      position: absolute;
+      left: 9%;
+      right: 8%;
+      bottom: 6%;
+      height: 18%;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(35, 195, 255, .18), transparent 68%);
+      filter: blur(14px);
+      opacity: .78;
+      pointer-events: none;
+    }
+    .stage.assembled-structure .assembly {
+      opacity: 1;
+      pointer-events: auto;
+      transform: rotateX(0deg) rotateY(0deg) translateY(-2px) scale(1);
+    }
+    .stage.exploded .assembly {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-8px) scale(1.02);
+    }
+    .stage.pv-structure:not(.exploded) .assembly {
+      transform: translateY(-6px) scale(1.18);
+    }
+    .stage.storage-structure:not(.exploded) .assembly,
+    .stage.offshore-structure:not(.exploded) .assembly {
+      transform: translateY(-8px) scale(1.1);
+    }
+    .stage.storage-structure:not(.exploded) .assembly::after,
+    .stage.offshore-structure:not(.exploded) .assembly::after {
+      content: "";
+      position: absolute;
+      left: 24%;
+      right: 18%;
+      bottom: 18%;
+      height: 16%;
+      border: 1px solid rgba(80, 196, 255, .2);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(31, 148, 204, .12), rgba(4, 24, 42, .5)),
+        repeating-linear-gradient(90deg, rgba(147, 218, 255, .12) 0 1px, transparent 1px 42px);
+      transform: perspective(760px) rotateX(62deg) rotateZ(-8deg);
+      box-shadow: inset 0 0 26px rgba(35,195,255,.07), 0 22px 40px rgba(0,0,0,.28);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .stage.selected .assembly-part:not(.active) {
+      opacity: .18;
+      filter: grayscale(.28) saturate(.65) blur(.35px);
+    }
+    .assembly-part {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w);
+      height: var(--h);
+      border: 0;
+      padding: 0;
+      background: transparent;
+      transform:
+        translate(var(--dx, 0), var(--dy, 0))
+        scale(var(--s, 1));
+      transition: transform .42s cubic-bezier(.2,.8,.2,1), opacity .25s ease, filter .25s ease;
+      z-index: var(--z, 1);
+    }
+    .stage.assembled-structure:not(.exploded) .assembly-part {
+      transform:
+        translate(0, 0)
+        scale(var(--s, 1));
+    }
+    .stage.assembled-structure:not(.exploded) .assembly-part img {
+      filter:
+        saturate(1.15)
+        contrast(1.08)
+        drop-shadow(0 24px 34px rgba(0,0,0,.48))
+        drop-shadow(0 0 18px rgba(35,195,255,.18));
+    }
+    .stage.assembled-structure:not(.exploded) .assembly-part::before {
+      content: "";
+      position: absolute;
+      inset: 18% 8%;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(35, 195, 255, .18), transparent 64%);
+      transform: translateY(42%);
+      filter: blur(12px);
+      opacity: .42;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .assembly-part img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter:
+        saturate(1.12)
+        contrast(1.06)
+        drop-shadow(0 22px 28px rgba(0,0,0,.42))
+        drop-shadow(0 0 15px rgba(35,195,255,.16));
+      pointer-events: none;
+    }
+    .assembly-part.active {
+      opacity: 1 !important;
+      z-index: 20;
+      transform:
+        translate(var(--sel-dx, var(--dx, 0)), var(--sel-dy, var(--dy, 0)))
+        scale(var(--sel-s, 1.34));
+    }
+    .assembly-part.active img {
+      filter:
+        saturate(1.22)
+        contrast(1.1)
+        drop-shadow(0 26px 36px rgba(0,0,0,.5))
+        drop-shadow(0 0 26px rgba(35,195,255,.48));
+    }
+    .assembly-part::after {
+      content: attr(aria-label);
+      position: absolute;
+      left: 50%;
+      bottom: -18px;
+      transform: translateX(-50%);
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: #dff7ff;
+      background: rgba(3, 17, 30, .82);
+      border: 1px solid rgba(35, 195, 255, .24);
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .18s ease;
+      pointer-events: none;
+    }
+    .assembly-part:hover::after,
+    .assembly-part.active::after { opacity: 1; }
+    .stage.assembled-structure:not(.exploded) .assembly-part::after {
+      bottom: -12px;
+      opacity: .56;
+      border-color: rgba(35, 195, 255, .18);
+      background: rgba(3, 17, 30, .58);
+    }
+    .stage.assembled-structure:not(.exploded) .assembly-part:hover::after,
+    .stage.assembled-structure:not(.exploded) .assembly-part.active::after {
+      opacity: 1;
+    }
+
+    .structure-switch {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 8;
+      display: none;
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid rgba(94, 181, 235, .18);
+      border-radius: 999px;
+      background: rgba(3, 15, 27, .72);
+      box-shadow: inset 0 0 18px rgba(35,195,255,.06), 0 14px 28px rgba(0,0,0,.28);
+      backdrop-filter: blur(16px);
+    }
+    .stage.wind-structure .structure-switch { display: none; }
+    .stage:not(.wind-structure) .structure-switch { display: flex; }
+    .stage:not(.wind-structure) #resetViewBtn { display: none; }
+    .structure-switch button {
+      height: 30px;
+      min-width: 62px;
+      border: 1px solid rgba(94, 181, 235, .2);
+      border-radius: 999px;
+      color: #a9c2d6;
+      background: rgba(8, 31, 51, .62);
+      padding: 0 12px;
+      font-size: 12px;
+    }
+    .structure-switch button.active {
+      color: #eaf8ff;
+      border-color: rgba(35, 195, 255, .68);
+      background: linear-gradient(90deg, rgba(26, 117, 202, .56), rgba(35, 195, 255, .16));
+      box-shadow: 0 0 18px rgba(35,195,255,.16);
+    }
+
+    .scene-viewport {
+      position: absolute;
+      inset: 24px 30px 20px;
+      display: none;
+      overflow: hidden;
+      border: 1px solid rgba(38, 172, 234, .18);
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, rgba(5, 18, 34, .18), rgba(0, 4, 11, .72)),
+        radial-gradient(circle at 42% 48%, rgba(14, 113, 165, .32), transparent 44%),
+        linear-gradient(90deg, rgba(32, 200, 255, .035) 1px, transparent 1px) 0 0 / 58px 58px,
+        linear-gradient(rgba(32, 200, 255, .03) 1px, transparent 1px) 0 0 / 58px 58px,
+        #030b17;
+      box-shadow:
+        inset 0 0 34px rgba(35, 195, 255, .04),
+        0 24px 58px rgba(0, 0, 0, .36);
+    }
+    .stage.wind-structure .scene-viewport { display: block; }
+    #turbineCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .scene-shade {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0, 6, 16, .34), transparent 22%, transparent 76%, rgba(0, 6, 16, .4)),
+        linear-gradient(180deg, rgba(1, 10, 22, .42), transparent 24%, rgba(0, 2, 8, .5));
+    }
+    .hotspot-layer {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+    }
+    .hotspot {
+      appearance: none;
+      position: absolute;
+      min-width: 126px;
+      padding: 6px 9px 7px 22px;
+      transform: translate(-10px, -58px);
+      border: 0;
+      border-left: 1px solid rgba(35, 204, 255, .9);
+      background: transparent;
+      color: #dff8ff;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.2;
+      text-align: left;
+      text-shadow: 0 1px 12px rgba(0, 0, 0, .8);
+      filter: drop-shadow(0 0 10px rgba(32, 200, 255, .5));
+      pointer-events: auto;
+    }
+    .hotspot::before {
+      position: absolute;
+      left: 0;
+      bottom: -36px;
+      width: 1px;
+      height: 40px;
+      content: "";
+      background: linear-gradient(var(--cyan), rgba(32, 200, 255, 0));
+    }
+    .hotspot::after {
+      position: absolute;
+      left: -4px;
+      bottom: -39px;
+      width: 7px;
+      height: 7px;
+      content: "";
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+    .hotspot strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+    .hotspot small {
+      display: block;
+      color: #8fb5c8;
+    }
+    .hotspot.is-selected {
+      min-width: 160px;
+      border: 1px solid rgba(82, 230, 183, .7);
+      border-radius: 8px;
+      background: rgba(5, 49, 74, .72);
+      box-shadow:
+        inset 0 0 24px rgba(32, 200, 255, .12),
+        0 10px 34px rgba(0, 0, 0, .28);
+    }
+    .focus-card { display: none; }
+    .scene-status {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 34px;
+      padding: 0 14px;
+      border: 1px solid rgba(70, 194, 255, .2);
+      border-radius: 8px;
+      background: rgba(2, 16, 28, .68);
+      color: #9eb8c7;
+      font-size: 12px;
+    }
+    .scene-status strong { color: var(--cyan); }
+    .scene-controls {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: min(92%, 520px);
+      padding: 7px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(45, 173, 232, .26);
+      border-radius: 10px;
+      background: rgba(2, 15, 27, .72);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .32);
+    }
+    .control-button {
+      height: 34px;
+      min-width: 96px;
+      border: 1px solid rgba(77, 185, 239, .35);
+      border-radius: 8px;
+      background: rgba(3, 23, 38, .74);
+      color: #bed4e4;
+      padding: 0 13px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .control-button.is-active {
+      border-color: rgba(52, 204, 255, .74);
+      background: linear-gradient(180deg, rgba(24, 143, 202, .48), rgba(4, 47, 74, .84));
+      color: #f3fbff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 0 18px rgba(32,200,255,.18);
+    }
+    .explode-slider {
+      display: grid;
+      align-items: center;
+      grid-template-columns: auto minmax(90px, 1fr);
+      gap: 8px;
+      min-width: 170px;
+      margin-left: 2px;
+      color: #9fb6c7;
+      font-size: 12px;
+    }
+    .explode-slider input {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+    .three-status {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+      width: min(520px, 72%);
+      padding: 16px 18px;
+      border: 1px solid rgba(35, 195, 255, .28);
+      border-radius: 12px;
+      background: rgba(3, 17, 30, .72);
+      color: #bfe8f8;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 18px 42px rgba(0,0,0,.32);
+      pointer-events: none;
+    }
+    .three-status.ready { display: none; }
+    .stage.three-fallback .three-status {
+      display: block;
+      top: 18px;
+      transform: translateX(-50%);
+      width: auto;
+      max-width: 680px;
+      padding: 8px 12px;
+      color: #ffdca8;
+      border-color: rgba(255, 196, 77, .42);
+      background: rgba(44, 28, 8, .72);
+      box-shadow: 0 10px 28px rgba(0,0,0,.24);
+    }
+
+    .callout {
+      position: absolute;
+      z-index: 2;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w, 120px);
+      height: var(--h, 42px);
+      padding: 0;
+      color: transparent;
+      background: rgba(35, 195, 255, .01);
+      border: 1px solid transparent;
+      border-radius: 9px;
+      display: block;
+      overflow: visible;
+      backdrop-filter: blur(10px);
+      font-size: 0;
+      text-indent: -999px;
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .callout::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      width: 7px;
+      height: 7px;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: var(--cyan);
+      opacity: 0;
+      box-shadow: 0 0 14px var(--cyan);
+      transition: opacity .18s ease;
+    }
+    .callout::after {
+      content: attr(aria-label);
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #eaf8ff;
+      font-size: 12px;
+      line-height: 1;
+      opacity: 0;
+      text-indent: 0;
+      white-space: nowrap;
+      text-shadow: 0 0 12px rgba(35, 195, 255, .65);
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .callout:hover,
+    .callout.active {
+      border-color: rgba(98, 219, 154, .62);
+      background: rgba(35, 195, 255, .07);
+      box-shadow: inset 0 0 18px rgba(35, 195, 255, .12), 0 0 18px rgba(35, 195, 255, .14);
+    }
+    .callout:hover::before,
+    .callout.active::before,
+    .callout:hover::after,
+    .callout.active::after { opacity: 1; }
+
+    .right {
+      grid-column: 3;
+      grid-row: 2 / 4;
+      border-left: 1px solid rgba(72, 171, 233, .16);
+      background: rgba(2, 13, 24, .72);
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 12px;
+      overflow: auto;
+      z-index: 4;
+    }
+    .panel {
+      border: 1px solid rgba(94, 181, 235, .2);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(9, 31, 49, .76), rgba(4, 17, 30, .76));
+      padding: 15px;
+      box-shadow: inset 0 0 24px rgba(35, 195, 255, .04);
+    }
+    .framework-panel {
+      background:
+        radial-gradient(circle at 84% 18%, rgba(35, 195, 255, .16), transparent 42%),
+        linear-gradient(180deg, rgba(9, 31, 49, .82), rgba(4, 17, 30, .76));
+    }
+    .framework-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 118px;
+      gap: 12px;
+      align-items: center;
+    }
+    .framework-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .framework-chip {
+      min-width: 0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px;
+      border: 1px solid rgba(94, 181, 235, .18);
+      border-radius: 7px;
+      background: rgba(5, 24, 40, .62);
+      color: #c7d9e8;
+      font-size: 12px;
+    }
+    .framework-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--chip-color);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--chip-color) 70%, transparent);
+    }
+    .framework-chip b {
+      font-weight: 700;
+    }
+    .framework-donut {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--framework-pie, conic-gradient(#23c3ff 0 21%, #62db9a 21% 39%, #ffc44d 39% 55%, #7fa9ff 55% 68%, #b284ff 68% 80%, #ff9b3d 80% 90%, #8aa1b5 90% 100%));
+      position: relative;
+      box-shadow: 0 0 24px rgba(35,195,255,.12);
+    }
+    .framework-donut::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      border-radius: 50%;
+      background: #041524;
+    }
+    .framework-donut b {
+      position: relative;
+      z-index: 1;
+      color: #eaf8ff;
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .pie-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      width: 26px;
+      margin-left: -13px;
+      margin-top: -8px;
+      color: #f4fbff;
+      font-size: 10px;
+      line-height: 1;
+      text-align: center;
+      text-shadow: 0 1px 5px rgba(0, 0, 0, .82);
+      transform: rotate(var(--angle)) translateY(-47px) rotate(calc(-1 * var(--angle)));
+      pointer-events: none;
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .panel h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .more {
+      color: #7fa9c6;
+      font-size: 12px;
+      border: 0;
+      background: transparent;
+    }
+    .supplier-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 80px 44px;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+      color: #bfd4e6;
+      font-size: 13px;
+      border: 0;
+      border-radius: 6px;
+      width: 100%;
+      background: transparent;
+      text-align: left;
+      padding: 0 4px;
+    }
+    .supplier-row:hover,
+    .supplier-row.active { background: rgba(35, 195, 255, .1); color: #fff; }
+    .bar {
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(90, 135, 166, .18);
+      overflow: hidden;
+    }
+    .bar i {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      border-radius: inherit;
+    }
+    .donut-row {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .donut {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--cyan) 0 32%, #5dbb83 32% 55%, #8192a8 55% 68%, #263d52 68% 100%);
+      position: relative;
+    }
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      border-radius: 50%;
+      background: #041524;
+    }
+    .donut b {
+      position: relative;
+      z-index: 1;
+      font-size: 20px;
+    }
+    .legend {
+      display: grid;
+      gap: 8px;
+      color: #9eb4c6;
+      font-size: 12px;
+    }
+    .legend span { display: flex; justify-content: space-between; gap: 12px; }
+    .legend i { display: inline-block; width: 8px; height: 8px; margin-right: 7px; background: var(--cyan); }
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .metric {
+      min-height: 76px;
+      border: 1px solid rgba(94, 181, 235, .14);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(12, 42, 64, .58);
+    }
+    .metric span { display: block; color: #8ea8bd; font-size: 12px; margin-bottom: 8px; }
+    .metric b { font-size: 22px; color: #eaf8ff; }
+    .metric em { color: var(--green); font-style: normal; margin-left: 8px; font-size: 14px; }
+    .spark {
+      width: 100%;
+      height: 42px;
+      margin-top: 8px;
+    }
+    .events {
+      display: grid;
+      gap: 9px;
+      color: #9fb7ca;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .bom {
+      grid-column: 2;
+      grid-row: 3;
+      padding: 14px 18px 16px;
+      border-top: 1px solid rgba(72, 171, 233, .16);
+      background: rgba(3, 14, 25, .72);
+      z-index: 4;
+      overflow: hidden;
+    }
+    .bom-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .bom-title { font-size: 16px; font-weight: 800; }
+    .bom-actions { display: flex; gap: 8px; }
+    .bom-track {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(116px, 1fr));
+      gap: 10px;
+      height: 130px;
+    }
+    .bom-card {
+      border: 1px solid rgba(94, 181, 235, .18);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(13, 42, 64, .78), rgba(5, 18, 31, .82));
+      color: #c7d9e8;
+      text-align: left;
+      padding: 11px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bom-card::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      right: 11px;
+      bottom: 9px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), rgba(35, 195, 255, .08));
+    }
+    .bom-card.part-tab {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      place-items: center;
+      gap: 8px;
+      text-align: center;
+      padding: 12px 10px 18px;
+    }
+    .bom-card:hover,
+    .bom-card.active {
+      border-color: rgba(35, 195, 255, .65);
+      box-shadow: inset 0 0 22px rgba(35, 195, 255, .08), 0 0 18px rgba(35, 195, 255, .08);
+    }
+    .bom-card b { display: block; color: #eaf8ff; font-size: 14px; margin-bottom: 8px; }
+    .bom-card.part-tab b {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+    .part-thumb {
+      width: 54px;
+      height: 46px;
+      position: relative;
+      display: block;
+      transform: perspective(130px) rotateX(54deg) rotateZ(-24deg);
+      filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .34)) drop-shadow(0 0 10px rgba(35, 195, 255, .18));
+    }
+    .part-thumb::before,
+    .part-thumb::after {
+      content: "";
+      position: absolute;
+      inset: 9px 8px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(80, 203, 255, .92), rgba(24, 95, 171, .84));
+      border: 1px solid rgba(185, 237, 255, .42);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset -10px -10px 18px rgba(0, 12, 26, .3);
+    }
+    .part-thumb::after {
+      inset: 14px 8px 5px 13px;
+      background: linear-gradient(135deg, rgba(12, 61, 112, .82), rgba(4, 26, 52, .72));
+      transform: translate(7px, 7px);
+      z-index: -1;
+      opacity: .8;
+    }
+    .part-thumb.blade::before {
+      inset: 8px 5px;
+      clip-path: polygon(8% 48%, 100% 36%, 100% 48%, 22% 57%, 100% 67%, 100% 78%);
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e8f8ff, #79d9ff 54%, #1d89da);
+    }
+    .part-thumb.bearing::before,
+    .part-thumb.yaw::before {
+      inset: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 34%, #d8f5ff 36%, #5cb9e8 52%, #114b82 72%);
+    }
+    .part-thumb.gearbox::before {
+      background: linear-gradient(135deg, #78b8ff, #1b65ba);
+      clip-path: polygon(16% 18%, 76% 8%, 94% 34%, 82% 82%, 24% 90%, 6% 58%);
+    }
+    .part-thumb.generator::before,
+    .part-thumb.cooling::before {
+      inset: 10px 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3f5163, #d4edf7 18%, #516579 45%, #1c2f42 100%);
+    }
+    .part-thumb.converter::before {
+      inset: 5px 14px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #d6e5ef, #687887 54%, #1e2a36);
+    }
+    .part-thumb.pitch::before {
+      inset: 8px;
+      border-radius: 50%;
+      background: conic-gradient(from 20deg, #31d4ff, #1164b7, #31d4ff);
+      clip-path: polygon(50% 0, 62% 34%, 100% 50%, 62% 66%, 50% 100%, 38% 66%, 0 50%, 38% 34%);
+    }
+    .part-thumb.real {
+      width: 86px;
+      height: 58px;
+      object-fit: contain;
+      transform: none;
+      border-radius: 9px;
+      padding: 2px;
+      background:
+        radial-gradient(circle at 48% 45%, rgba(35, 195, 255, .13), transparent 62%),
+        linear-gradient(180deg, rgba(10, 38, 60, .5), rgba(2, 12, 23, .18));
+      border: 1px solid rgba(94, 181, 235, .12);
+      filter: saturate(1.12) contrast(1.06) drop-shadow(0 12px 14px rgba(0,0,0,.36));
+      transition: transform .2s ease, filter .2s ease, border-color .2s ease;
+    }
+    .bom-card:hover .part-thumb.real,
+    .bom-card.active .part-thumb.real {
+      transform: translateY(-2px) scale(1.06);
+      border-color: rgba(35, 195, 255, .38);
+      filter: saturate(1.2) contrast(1.08) drop-shadow(0 14px 18px rgba(0,0,0,.42)) drop-shadow(0 0 14px rgba(35,195,255,.18));
+    }
+    .bom-card span { display: block; color: #90a8ba; font-size: 12px; line-height: 1.35; margin-bottom: 5px; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #8cf0bb !important;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(31, 142, 84, .22);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 68px;
+      transform: translateX(-50%) translateY(-14px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+      padding: 9px 14px;
+      border: 1px solid rgba(35, 195, 255, .42);
+      border-radius: 999px;
+      background: rgba(3, 16, 28, .82);
+      color: #dff7ff;
+      box-shadow: 0 0 24px rgba(35, 195, 255, .16);
+      transition: opacity .2s ease, transform .2s ease;
+      font-size: 13px;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 1180px) {
+      body { overflow: auto; }
+      .shell {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        grid-template-columns: 64px 1fr;
+        grid-template-rows: 58px 56vh auto auto;
+      }
+      .topbar { grid-column: 2; grid-template-columns: 1fr; height: auto; padding: 12px 14px; }
+      .tabs, .toolbar { overflow-x: auto; }
+      .right { grid-column: 2; grid-row: 4; border-left: 0; }
+      .bom { grid-column: 2; grid-row: 3; }
+      .bom-track { overflow-x: auto; display: flex; }
+      .bom-card { flex: 0 0 145px; }
+      .callout { transform: scale(.86); transform-origin: left top; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail">
+      <div class="logo"><div class="logo-mark">∴</div></div>
+      <nav class="nav" id="nav"></nav>
+      <button class="nav-btn" id="settings"><b>⚙</b><span>设置</span></button>
+    </aside>
+
+    <header class="topbar">
+      <div class="title" id="title">风机机舱 3D 拆解</div>
+      <div class="tabs" id="tabs"></div>
+      <div class="toolbar">
+        <select class="mode" id="modelSelect"></select>
+        <button class="tool" id="searchBtn" title="搜索">⌕</button>
+        <button class="tool" id="fullBtn" title="全屏">⛶</button>
+      </div>
+    </header>
+
+    <main class="stage" id="stage">
+      <div class="scene-viewport" id="sceneViewport">
+        <canvas id="turbineCanvas" aria-label="可旋转风机机舱 3D 爆炸模型"></canvas>
+        <div class="scene-shade" aria-hidden="true"></div>
+        <div class="hotspot-layer" id="hotspotLayer" aria-hidden="true"></div>
+        <div class="scene-status">
+          <span>爆炸系数</span>
+          <strong id="explodeReadout">0%</strong>
+        </div>
+        <div class="three-status" id="threeStatus">正在加载风机 3D 模型...</div>
+        <div class="scene-controls" aria-label="3D 控制">
+          <button class="control-button" id="explodeButton">装配视图</button>
+          <button class="control-button is-active" id="autoButton">自动旋转</button>
+          <label class="explode-slider">
+            <span>爆炸系数</span>
+            <input id="explodeSlider" type="range" min="0" max="1" value="0" step="0.01" />
+          </label>
+        </div>
+      </div>
+      <div class="model-wrap">
+        <img class="model-img" id="modelImg" src="" alt="">
+        <div class="assembly" id="assembly"></div>
+      </div>
+      <div id="callouts"></div>
+      <div class="structure-switch" id="structureSwitch" aria-label="结构演示控制">
+        <button id="combineBtn" type="button">组合</button>
+        <button id="explodeBtn" type="button">拆解</button>
+        <button id="resetViewBtn" type="button">复位</button>
+      </div>
+    </main>
+
+    <aside class="right">
+      <section class="panel framework-panel">
+        <div class="panel-head"><h3 id="frameworkTitle">框采供应商</h3><button class="more" id="frameworkMore">更多 ›</button></div>
+        <div class="framework-grid">
+          <div class="framework-list" id="frameworkList"></div>
+          <div class="framework-donut" id="frameworkDonut"><b>框采<br>份额</b></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h3 id="supplierTitle">供应商</h3><button class="more" id="supplierMore">更多 ›</button></div>
+        <div id="supplierList"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h3 id="marketTitle">市场份额</h3><button class="more" id="marketMore">更多 ›</button></div>
+        <div class="donut-row">
+          <div class="donut"><b id="donutValue">32.6%</b></div>
+          <div class="legend" id="legend"></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="bom">
+      <div class="bom-head">
+        <div class="bom-title" id="bomTitle">主机关键部件 BOM</div>
+        <div class="bom-actions">
+          <button class="mode" id="exportBtn">导出</button>
+          <button class="mode" id="compareBtn">对比</button>
+        </div>
+      </div>
+      <div class="bom-track" id="bomTrack"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const views = [
+      {
+        key: "wind",
+        nav: "风电",
+        icon: "◈",
+        title: "风机机舱 3D 拆解",
+        image: "assets/model-crops/wind-nacelle-model.png",
+        models: ["海上风电", "陆上风电", "金风 GWH191", "明阳 MySE"],
+        frameworkSuppliers: ["金风科技", "远景能源", "明阳智能", "东方风电", "运达股份", "三一重能", "上海电气", "中国中车"],
+        frameworkShares: [21, 18, 16, 13, 12, 10, 6, 4],
+        tabs: ["整机总览", "机舱拆解", "部件分析", "供应链", "运维监控"],
+        bomTitle: "主机关键部件",
+        supplierTitle: "供应商",
+        marketTitle: "市场份额",
+        callouts: [
+          ["叶片", "3%", "12%", "中材科技", "17%", "正常", "180px", "58px"],
+          ["主轴承", "37%", "8%", "SKF", "18%", "核心", "160px", "62px"],
+          ["齿轮箱", "52%", "9%", "南高齿", "21%", "稳定", "160px", "62px"],
+          ["发电机", "67%", "9%", "上海电气", "15%", "正常", "160px", "62px"],
+          ["变流器", "82%", "9%", "阳光电源", "12%", "跟踪", "150px", "62px"],
+          ["变桨系统", "4%", "66%", "SSB", "9%", "正常", "190px", "72px"],
+          ["偏航系统", "86%", "82%", "新强联", "8%", "正常", "150px", "62px"],
+          ["冷却系统", "83%", "39%", "中航光电", "7%", "正常", "150px", "120px"]
+        ],
+        suppliers: [["SKF", 18.7], ["TIMKEN", 14.2], ["洛轴LYC", 9.8], ["上海电气", 7.6], ["南高齿", 6.1], ["其他", 43.6]],
+        metrics: [["营业收入", "+18.6%", "同比增长"], ["毛利率", "23.4%", "同比增长"], ["净利润", "+22.8%", "同比增长"], ["订单", "16.2GW", "在手项目"]],
+        events: ["2024-05-20 金风主轴承年度供货协议更新", "2024-04-28 机舱总成项目中标，规模 8.6 亿元", "2024-03-18 海风大兆瓦机型进入批量交付"]
+      },
+      {
+        key: "pv",
+        nav: "光伏",
+        icon: "▣",
+        title: "光伏组件 3D 分层拆解",
+        image: "assets/model-crops/pv-module-model.png",
+        models: ["双面双玻 72HL4-(V)", "TOPCon 182", "HJT 210", "BC 组件"],
+        frameworkSuppliers: ["隆基绿能", "晶科能源", "晶澳科技", "天合光能", "通威股份", "阿特斯", "东方日升", "正泰新能"],
+        frameworkShares: [20, 18, 16, 15, 11, 8, 7, 5],
+        tabs: ["总览", "3D 拆解", "BOM 结构", "供应商", "成本分析", "碳足迹"],
+        bomTitle: "组件关键部件",
+        supplierTitle: "供应商格局",
+        marketTitle: "供应商总数",
+        callouts: [
+          ["铝边框", "70%", "4%", "鑫铂股份", "7.8%", "正常", "190px", "48px"],
+          ["光伏玻璃", "70%", "16%", "福莱特", "18.6%", "紧俏", "205px", "48px"],
+          ["胶膜", "70%", "29%", "福斯特", "13.4%", "正常", "220px", "48px"],
+          ["电池片", "70%", "41%", "通威股份", "39.7%", "正常", "185px", "48px"],
+          ["焊带", "70%", "54%", "宇邦新材", "2.1%", "正常", "170px", "48px"],
+          ["背板", "70%", "66%", "赛伍技术", "6.2%", "正常", "170px", "48px"],
+          ["接线盒", "70%", "78%", "快可电子", "1.7%", "正常", "175px", "48px"],
+          ["密封胶", "70%", "90%", "回天新材", "0.5%", "正常", "175px", "42px"]
+        ],
+        suppliers: [["福斯特", 23], ["信义光能", 19], ["隆基绿能", 15], ["晶科能源", 12], ["中来股份", 9], ["其他", 22]],
+        metrics: [["营业收入", "603.26", "+18.2%"], ["毛利率", "23.4%", "+2.1pp"], ["净利润", "48.75", "+15.6%"], ["资产负债率", "43.2%", "-1.3pp"]],
+        events: ["2024-05-12 签订年度长单合作协议，保障主要材料供应稳定", "2024-04-28 发布年度报告，营收同比增长 18.2%", "2024-03-15 光伏背板扩产项目投产，年产能提升至 2.5 亿平米"]
+      },
+      {
+        key: "storage",
+        nav: "储能",
+        icon: "▤",
+        title: "储能系统 3D 拆解",
+        image: "assets/model-crops/storage-system-model.png",
+        models: ["华东储能电站一期", "2.5MW PCS", "280Ah 电芯", "液冷方案"],
+        frameworkSuppliers: ["宁德时代", "比亚迪", "阳光电源", "海博思创", "远景能源", "南都电源", "科华数据", "亿纬锂能"],
+        frameworkShares: [24, 18, 15, 12, 10, 8, 7, 6],
+        tabs: ["整体视图", "结构拆解", "电气拓扑", "热管理", "消防布局"],
+        bomTitle: "储能核心部件",
+        supplierTitle: "供应商",
+        marketTitle: "市场份额",
+        callouts: [
+          ["电芯", "10%", "78%", "宁德时代", "30%", "正常", "160px", "55px"],
+          ["电池簇", "5%", "18%", "比亚迪", "12%", "正常", "150px", "62px"],
+          ["BMS", "35%", "72%", "阳光电源", "12%", "正常", "125px", "55px"],
+          ["PCS", "76%", "39%", "盛弘股份", "12%", "正常", "120px", "55px"],
+          ["EMS", "71%", "52%", "南瑞继保", "8%", "正常", "130px", "55px"],
+          ["温控系统", "7%", "0%", "英维克", "6%", "正常", "160px", "58px"],
+          ["消防系统", "54%", "70%", "青鸟消防", "4%", "正常", "150px", "55px"],
+          ["开关柜", "70%", "75%", "正泰电气", "8%", "正常", "140px", "55px"]
+        ],
+        suppliers: [["宁德时代", 30], ["比亚迪", 12], ["阳光电源", 12], ["特变电工", 8], ["正泰电气", 8], ["其他", 30]],
+        metrics: [["循环次数", "6,000", "次"], ["能量效率", "≥90%", "稳定"], ["系统可用率", "≥98%", "在线"], ["设计寿命", "15年", "液冷"]],
+        events: ["2025-05-20 项目监控数据更新，设备可用率 98.6%", "2025-04-18 PCS 供应商完成批量交付", "2025-03-26 液冷温控系统完成调试"]
+      },
+      {
+        key: "offshore",
+        nav: "升压",
+        icon: "◇",
+        title: "海上升压站 3D 拆解",
+        image: "assets/model-crops/offshore-substation-model.png",
+        models: ["东海大桥海上风电场", "220kV", "1,200MW", "2024-06"],
+        frameworkSuppliers: ["特变电工", "中国西电", "平高电气", "思源电气", "许继电气", "国电南瑞", "东方电缆", "中天科技"],
+        frameworkShares: [20, 17, 14, 13, 12, 10, 8, 6],
+        tabs: ["3D 拆解", "结构总览", "设备清单", "数据看板", "运维监测"],
+        bomTitle: "设备族谱",
+        supplierTitle: "核心设备供应商",
+        marketTitle: "市场趋势",
+        callouts: [
+          ["主变压器", "49%", "28%", "特变电工", "28%", "稳定", "150px", "58px"],
+          ["GIS组合电器", "79%", "31%", "西电电气", "22%", "稳定", "190px", "58px"],
+          ["SVG无功补偿", "80%", "56%", "阳光电源", "18%", "偏紧", "190px", "58px"],
+          ["高压开关柜", "70%", "4%", "许继电气", "15%", "稳定", "190px", "58px"],
+          ["预制舱", "16%", "4%", "南瑞继保", "12%", "稳定", "150px", "58px"],
+          ["控保系统", "47%", "3%", "国电南瑞", "12%", "稳定", "150px", "58px"],
+          ["柴油发电机", "10%", "26%", "卡得城制", "8%", "稳定", "170px", "58px"],
+          ["海缆终端", "2%", "66%", "东方电缆", "9%", "稳定", "165px", "58px"]
+        ],
+        suppliers: [["特变电工", 28], ["西电电气", 22], ["阳光电源", 18], ["许继电气", 15], ["国电南瑞", 12], ["其他", 5]],
+        metrics: [["东方电缆", "603606.SH", "买入"], ["营收 YoY", "+18%", "海缆龙头"], ["毛利率", "23%", "深远海"], ["评级", "买入", "持续受益"]],
+        events: ["2024-06 海上升压站核心设备完成集成测试", "2024-05 主变压器与 GIS 批量到货", "2024-04 海缆终端及冷却系统进入联调"]
+      }
+    ];
+
+    const partSupplierMap = {
+      wind: {
+        "叶片": [["中材科技", 26], ["时代新材", 18], ["艾郎科技", 13], ["中复连众", 10], ["天顺风能", 8], ["其他", 25]],
+        "主轴承": [["SKF", 18.7], ["TIMKEN", 14.2], ["洛轴LYC", 9.8], ["瓦轴BZW", 8.5], ["新强联", 7.2], ["其他", 41.6]],
+        "齿轮箱": [["南高齿", 28], ["采埃孚", 17], ["重齿", 12], ["杭齿前进", 9], ["威能极", 7], ["其他", 27]],
+        "发电机": [["上海电气", 18], ["湘电股份", 14], ["永济电机", 12], ["中车株洲所", 10], ["东方电气", 8], ["其他", 38]],
+        "变流器": [["阳光电源", 22], ["禾望电气", 17], ["中车株洲所", 14], ["日风电气", 9], ["上能电气", 7], ["其他", 31]],
+        "变桨系统": [["SSB", 18], ["穆格", 15], ["埃斯倍", 12], ["瑞能电气", 10], ["科诺伟业", 8], ["其他", 37]],
+        "偏航系统": [["新强联", 18], ["洛轴LYC", 13], ["瓦轴BZW", 11], ["大连冶金", 8], ["天马轴承", 7], ["其他", 43]],
+        "冷却系统": [["中航光电", 14], ["英维克", 12], ["同飞股份", 10], ["高澜股份", 8], ["申菱环境", 7], ["其他", 49]]
+      },
+      pv: {
+        "铝边框": [["鑫铂股份", 18], ["永臻股份", 16], ["爱康科技", 10], ["海达股份", 8], ["罗普斯金", 6], ["其他", 42]],
+        "光伏玻璃": [["信义光能", 28], ["福莱特", 25], ["彩虹新能源", 9], ["南玻A", 8], ["亚玛顿", 5], ["其他", 25]],
+        "胶膜": [["福斯特", 48], ["海优新材", 15], ["赛伍技术", 10], ["明冠新材", 7], ["鹿山新材", 5], ["其他", 15]],
+        "电池片": [["通威股份", 20], ["爱旭股份", 12], ["晶科能源", 11], ["隆基绿能", 10], ["钧达股份", 8], ["其他", 39]],
+        "焊带": [["宇邦新材", 16], ["同享科技", 12], ["威腾电气", 9], ["易通科技", 6], ["太平洋光伏", 5], ["其他", 52]],
+        "背板": [["赛伍技术", 22], ["中来股份", 19], ["明冠新材", 13], ["乐凯胶片", 8], ["回天新材", 5], ["其他", 33]],
+        "接线盒": [["快可电子", 18], ["通灵股份", 15], ["谐通科技", 10], ["泽润新能", 8], ["江苏海天", 6], ["其他", 43]],
+        "密封胶": [["回天新材", 20], ["硅宝科技", 16], ["集泰股份", 10], ["之江有机硅", 8], ["陶氏", 6], ["其他", 40]]
+      },
+      storage: {
+        "电芯": [["宁德时代", 32], ["比亚迪", 15], ["亿纬锂能", 11], ["瑞浦兰钧", 8], ["鹏辉能源", 6], ["其他", 28]],
+        "电池簇": [["比亚迪", 18], ["宁德时代", 16], ["海博思创", 10], ["南都电源", 8], ["派能科技", 6], ["其他", 42]],
+        "BMS": [["协能科技", 18], ["高特电子", 14], ["科列技术", 12], ["阳光电源", 10], ["宁德时代", 8], ["其他", 38]],
+        "PCS": [["阳光电源", 24], ["上能电气", 15], ["盛弘股份", 13], ["科华数据", 10], ["固德威", 7], ["其他", 31]],
+        "EMS": [["南瑞继保", 18], ["国电南瑞", 15], ["阳光电源", 12], ["许继电气", 9], ["科陆电子", 8], ["其他", 38]],
+        "温控系统": [["英维克", 22], ["同飞股份", 16], ["高澜股份", 12], ["申菱环境", 9], ["松芝股份", 6], ["其他", 35]],
+        "消防系统": [["青鸟消防", 18], ["国安达", 14], ["海湾消防", 12], ["哲弗智能", 9], ["中消云", 6], ["其他", 41]],
+        "开关柜": [["正泰电气", 18], ["许继电气", 15], ["特变电工", 12], ["平高电气", 10], ["良信股份", 7], ["其他", 38]]
+      },
+      offshore: {
+        "主变压器": [["特变电工", 28], ["中国西电", 18], ["保变电气", 12], ["山东电工", 9], ["正泰电气", 7], ["其他", 26]],
+        "GIS组合电器": [["中国西电", 22], ["平高电气", 18], ["思源电气", 12], ["山东泰开", 10], ["许继电气", 8], ["其他", 30]],
+        "SVG无功补偿": [["阳光电源", 18], ["思源电气", 15], ["荣信汇科", 12], ["新风光", 10], ["许继电气", 8], ["其他", 37]],
+        "高压开关柜": [["许继电气", 18], ["平高电气", 14], ["中国西电", 12], ["正泰电气", 10], ["特锐德", 8], ["其他", 38]],
+        "预制舱": [["南瑞继保", 16], ["许继电气", 13], ["特锐德", 12], ["国电南瑞", 10], ["思源电气", 8], ["其他", 41]],
+        "控保系统": [["国电南瑞", 24], ["南瑞继保", 18], ["许继电气", 13], ["四方股份", 10], ["积成电子", 6], ["其他", 29]],
+        "柴油发电机": [["卡得城制", 12], ["康明斯", 11], ["潍柴动力", 10], ["玉柴机器", 8], ["上柴股份", 7], ["其他", 52]],
+        "海缆终端": [["东方电缆", 22], ["中天科技", 18], ["亨通光电", 15], ["汉缆股份", 10], ["宝胜股份", 7], ["其他", 28]]
+      }
+    };
+
+    const supplierFinanceMap = {
+      "中材科技": [["营收趋势", "稳中有升", "叶片业务"], ["毛利率", "改善", "降本增效"], ["订单", "高景气", "大兆瓦"], ["风险", "价格竞争", "跟踪"]],
+      "时代新材": [["营收趋势", "修复", "风电材料"], ["毛利率", "承压", "原料价格"], ["订单", "改善", "海陆并进"], ["风险", "交付节奏", "跟踪"]],
+      "SKF": [["营收趋势", "稳定", "全球轴承"], ["毛利率", "较高", "高端轴承"], ["订单", "稳定", "主轴承"], ["风险", "进口依赖", "关注"]],
+      "南高齿": [["营收趋势", "增长", "齿轮箱"], ["毛利率", "稳定", "规模效应"], ["订单", "饱满", "风电传动"], ["风险", "价格年降", "跟踪"]],
+      "上海电气": [["营收趋势", "恢复", "装备制造"], ["毛利率", "改善", "结构优化"], ["订单", "稳定", "发电设备"], ["风险", "项目交付", "跟踪"]],
+      "阳光电源": [["营收趋势", "增长", "电力电子"], ["毛利率", "稳健", "逆变储能"], ["订单", "较强", "全球渠道"], ["风险", "汇率/竞争", "关注"]],
+      "福斯特": [["营收趋势", "领先", "胶膜龙头"], ["毛利率", "修复", "粒子价格"], ["订单", "稳定", "组件需求"], ["风险", "扩产竞争", "跟踪"]],
+      "通威股份": [["营收趋势", "周期承压", "硅料电池"], ["毛利率", "波动", "价格周期"], ["订单", "规模领先", "电池片"], ["风险", "行业供需", "关注"]],
+      "宁德时代": [["营收趋势", "领先", "电芯龙头"], ["毛利率", "稳健", "规模优势"], ["订单", "高", "储能电芯"], ["风险", "价格竞争", "跟踪"]],
+      "比亚迪": [["营收趋势", "增长", "电池系统"], ["毛利率", "稳定", "垂直一体化"], ["订单", "增长", "储能出海"], ["风险", "产能匹配", "跟踪"]],
+      "特变电工": [["营收趋势", "稳定", "电力设备"], ["毛利率", "稳健", "输变电"], ["订单", "充足", "主变压器"], ["风险", "项目周期", "跟踪"]],
+      "中国西电": [["营收趋势", "改善", "高压设备"], ["毛利率", "稳定", "GIS"], ["订单", "较强", "电网投资"], ["风险", "交付周期", "跟踪"]],
+      default: [["营收趋势", "待更新", "公告同步"], ["毛利率", "待更新", "定报同步"], ["订单", "待更新", "中标公告"], ["风险", "待更新", "供应链跟踪"]]
+    };
+
+    const state = { view: 0, part: 0, highlightPart: null, tab: 0, supplier: 0, rotate: false, transparent: false, exploded: false };
+    const $ = id => document.getElementById(id);
+    const toast = $("toast");
+
+    function notify(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(notify.t);
+      notify.t = setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function renderNav() {
+      $("nav").innerHTML = views.map((v, i) => `
+        <button class="nav-btn ${i === state.view ? "active" : ""}" data-view="${i}">
+          <b>${v.icon}</b><span>${v.nav}</span>
+        </button>
+      `).join("");
+      document.querySelectorAll(".nav-btn[data-view]").forEach(btn => {
+        btn.onclick = () => { state.view = Number(btn.dataset.view); state.part = 0; state.highlightPart = null; state.tab = 0; state.supplier = 0; state.exploded = false; render(); };
+      });
+    }
+
+    function renderTop(v) {
+      $("title").textContent = v.title;
+      $("tabs").innerHTML = "";
+      $("modelSelect").innerHTML = "";
+    }
+
+    function renderFramework(v) {
+      const names = v.frameworkSuppliers || v.models || [];
+      const shares = v.frameworkShares || names.map(() => Math.round(100 / Math.max(1, names.length)));
+      const colors = ["#23c3ff", "#62db9a", "#ffc44d", "#7fa9ff", "#b284ff", "#ff9b3d", "#8aa1b5", "#eb6b88"];
+      $("frameworkTitle").textContent = `${v.nav} · 框采供应商`;
+      $("frameworkList").innerHTML = names.slice(0, 8).map((name, i) => `
+        <div class="framework-chip" style="--chip-color:${colors[i % colors.length]}"><b>${name}</b></div>
+      `).join("");
+      let start = 0;
+      const total = shares.reduce((sum, value) => sum + Number(value || 0), 0) || 100;
+      const segments = shares.slice(0, 8).map((value, i) => {
+        const size = Number(value || 0) / total * 100;
+        const end = start + size;
+        const segment = `${colors[i % colors.length]} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+        start = end;
+        return segment;
+      });
+      start = 0;
+      const labels = shares.slice(0, 8).map((value, i) => {
+        const size = Number(value || 0) / total;
+        const angle = (start + size / 2) * 360;
+        start += size;
+        return `<span class="pie-label" style="--angle:${angle.toFixed(1)}deg">${value}%</span>`;
+      }).join("");
+      $("frameworkDonut").style.setProperty("--framework-pie", `conic-gradient(${segments.join(", ")})`);
+      $("frameworkDonut").innerHTML = `<b>框采<br>份额</b>${labels}`;
+    }
+
+    function renderStage(v) {
+      $("stage").classList.toggle("selected", state.highlightPart != null);
+      $("stage").classList.toggle("exploded", state.exploded);
+      $("stage").classList.toggle("assembled-structure", v.key === "wind" || state.exploded);
+      $("stage").classList.toggle("wind-structure", v.key === "wind");
+      ["pv","storage","offshore"].forEach(key => $("stage").classList.toggle(`${key}-structure`, v.key === key));
+      $("modelImg").src = v.image;
+      $("modelImg").alt = v.title;
+      $("combineBtn").textContent = v.key === "wind" ? "组合" : "合成";
+      $("explodeBtn").textContent = v.key === "wind" ? "拆解" : "爆炸";
+      $("combineBtn").classList.toggle("active", !state.exploded && state.highlightPart == null);
+      $("explodeBtn").classList.toggle("active", state.exploded);
+      $("resetViewBtn").classList.toggle("active", v.key === "wind" && state.highlightPart != null);
+      const layout = assemblyLayouts[v.key] || assemblyLayouts.wind;
+      $("assembly").innerHTML = v.callouts.map((p, i) => {
+        const l = layout[i] || layout[0];
+        return `
+          <button class="assembly-part ${i === state.highlightPart ? "active" : ""}" data-part="${i}" aria-label="${p[0]}"
+            style="--x:${l.x};--y:${l.y};--w:${l.w};--h:${l.h};--dx:${l.dx};--dy:${l.dy};--s:${l.s || 1};--sel-dx:${l.selDx || l.dx};--sel-dy:${l.selDy || l.dy};--sel-s:${l.selS || 1.45};--z:${l.z || i + 1};">
+            <img src="${partThumbSrc(v.key, p[0])}" alt="${p[0]}3D部件">
+          </button>
+        `;
+      }).join("");
+      $("assembly").querySelectorAll(".assembly-part").forEach(btn => {
+        btn.onclick = event => {
+          event.stopPropagation();
+          state.part = Number(btn.dataset.part);
+          state.highlightPart = state.part;
+          state.supplier = 0;
+          render();
+          notify(`主图高亮：${v.callouts[state.part][0]}`);
+        };
+      });
+      $("callouts").innerHTML = "";
+    }
+
+    function currentPart(v) {
+      return v.callouts[state.part] || v.callouts[0];
+    }
+
+    function currentSuppliers(v) {
+      const partName = currentPart(v)[0];
+      return partSupplierMap[v.key]?.[partName] || v.suppliers;
+    }
+
+    const windThreeToPart = {
+      "blade-system": "叶片",
+      "pitch-ring": "变桨系统",
+      "main-bearing": "主轴承",
+      "gearbox": "齿轮箱",
+      "generator": "发电机",
+      "converter": "变流器",
+      "yaw-system": "偏航系统",
+      "cooling-pipe": "冷却系统"
+    };
+
+    function partIconClass(partName) {
+      if (/叶片|铝边框|光伏玻璃|胶膜|电池片|焊带|背板|密封胶|海缆/.test(partName)) return "blade";
+      if (/轴承|偏航|接线盒/.test(partName)) return "bearing";
+      if (/齿轮箱|电池簇|BMS|EMS|控保|预制舱/.test(partName)) return "gearbox";
+      if (/发电机|电芯|主变压器|柴油/.test(partName)) return "generator";
+      if (/变流器|PCS|SVG|开关柜|GIS|高压/.test(partName)) return "converter";
+      if (/变桨|消防/.test(partName)) return "pitch";
+      if (/冷却|温控/.test(partName)) return "cooling";
+      return "gearbox";
+    }
+
+    function partThumbSrc(viewKey, partName) {
+      const map = {
+        "wind:叶片": "wind-blade",
+        "wind:主轴承": "wind-bearing",
+        "wind:齿轮箱": "wind-gearbox",
+        "wind:发电机": "wind-generator",
+        "wind:变流器": "wind-converter",
+        "wind:变桨系统": "wind-pitch",
+        "wind:偏航系统": "wind-yaw",
+        "wind:冷却系统": "wind-cooling",
+        "pv:铝边框": "pv-frame",
+        "pv:光伏玻璃": "pv-glass",
+        "pv:胶膜": "pv-film",
+        "pv:电池片": "pv-cell",
+        "pv:焊带": "pv-ribbon",
+        "pv:背板": "pv-backsheet",
+        "pv:接线盒": "pv-junction",
+        "pv:密封胶": "pv-sealant",
+        "storage:电芯": "storage-cell",
+        "storage:电池簇": "storage-rack",
+        "storage:BMS": "storage-bms",
+        "storage:PCS": "storage-pcs",
+        "storage:EMS": "storage-ems",
+        "storage:温控系统": "storage-thermal",
+        "storage:消防系统": "storage-fire",
+        "storage:开关柜": "storage-switchgear",
+        "offshore:主变压器": "offshore-transformer",
+        "offshore:GIS组合电器": "offshore-gis",
+        "offshore:SVG无功补偿": "offshore-svg",
+        "offshore:高压开关柜": "offshore-switchgear",
+        "offshore:预制舱": "offshore-cabin",
+        "offshore:控保系统": "offshore-control",
+        "offshore:柴油发电机": "offshore-diesel",
+        "offshore:海缆终端": "offshore-cable"
+      };
+      return `assets/part-thumbs/${map[`${viewKey}:${partName}`] || "wind-gearbox"}.png`;
+    }
+
+    const assemblyLayouts = {
+      wind: [
+        { x: "11%", y: "36%", w: "24%", h: "31%", dx: "-130px", dy: "-82px", s: 1.1, selDx: "58px", selDy: "-12px", selS: 1.72, z: 14 },
+        { x: "29%", y: "40%", w: "14%", h: "23%", dx: "-78px", dy: "-104px", s: 1.08, z: 15 },
+        { x: "39%", y: "36%", w: "18%", h: "27%", dx: "-12px", dy: "-122px", s: 1.08, z: 16 },
+        { x: "53%", y: "39%", w: "16%", h: "24%", dx: "76px", dy: "-102px", s: 1.06, z: 15 },
+        { x: "66%", y: "37%", w: "16%", h: "25%", dx: "148px", dy: "-82px", s: 1.04, z: 15 },
+        { x: "19%", y: "52%", w: "15%", h: "24%", dx: "-132px", dy: "96px", s: 1.04, z: 10 },
+        { x: "42%", y: "55%", w: "25%", h: "24%", dx: "0px", dy: "126px", s: 1.08, selDx: "0", selDy: "-24px", selS: 1.55, z: 8 },
+        { x: "66%", y: "53%", w: "19%", h: "25%", dx: "148px", dy: "94px", s: 1.05, z: 10 }
+      ],
+      pv: [
+        { x: "29%", y: "25%", w: "48%", h: "15%", dx: "-72px", dy: "-130px", s: 1.04, z: 8 },
+        { x: "30%", y: "29%", w: "47%", h: "16%", dx: "70px", dy: "-104px", s: 1.04, z: 7 },
+        { x: "31%", y: "33%", w: "46%", h: "16%", dx: "-58px", dy: "-64px", s: 1.04, z: 6 },
+        { x: "32%", y: "37%", w: "45%", h: "17%", dx: "60px", dy: "-18px", s: 1.04, z: 5 },
+        { x: "33%", y: "42%", w: "44%", h: "12%", dx: "-72px", dy: "42px", s: 1.04, z: 4 },
+        { x: "31%", y: "46%", w: "46%", h: "15%", dx: "58px", dy: "86px", s: 1.04, z: 3 },
+        { x: "59%", y: "53%", w: "14%", h: "15%", dx: "128px", dy: "104px", s: 1.03, z: 6 },
+        { x: "30%", y: "51%", w: "47%", h: "10%", dx: "-96px", dy: "126px", s: 1.04, z: 2 }
+      ],
+      storage: [
+        { x: "31%", y: "57%", w: "13%", h: "18%", dx: "-160px", dy: "78px", s: 1.02, z: 8 },
+        { x: "39%", y: "33%", w: "23%", h: "34%", dx: "-94px", dy: "-82px", s: 1.08, z: 9 },
+        { x: "26%", y: "38%", w: "15%", h: "17%", dx: "-158px", dy: "-94px", s: 1.04, z: 10 },
+        { x: "61%", y: "37%", w: "19%", h: "29%", dx: "96px", dy: "-78px", s: 1.07, z: 9 },
+        { x: "48%", y: "61%", w: "16%", h: "18%", dx: "0", dy: "118px", s: 1.02, z: 8 },
+        { x: "69%", y: "49%", w: "18%", h: "25%", dx: "150px", dy: "58px", s: 1.04, z: 8 },
+        { x: "44%", y: "65%", w: "18%", h: "22%", dx: "-70px", dy: "126px", s: 1.02, z: 7 },
+        { x: "73%", y: "32%", w: "17%", h: "27%", dx: "160px", dy: "-104px", s: 1.04, z: 8 }
+      ],
+      offshore: [
+        { x: "35%", y: "39%", w: "19%", h: "27%", dx: "-138px", dy: "18px", s: 1.05, z: 6 },
+        { x: "51%", y: "40%", w: "21%", h: "23%", dx: "-50px", dy: "36px", s: 1.05, z: 6 },
+        { x: "64%", y: "51%", w: "16%", h: "21%", dx: "68px", dy: "96px", s: 1.03, z: 5 },
+        { x: "61%", y: "25%", w: "23%", h: "21%", dx: "136px", dy: "-86px", s: 1.04, z: 8 },
+        { x: "26%", y: "24%", w: "21%", h: "22%", dx: "-136px", dy: "-108px", s: 1.04, z: 8 },
+        { x: "45%", y: "24%", w: "16%", h: "21%", dx: "0px", dy: "-116px", s: 1.04, z: 8 },
+        { x: "25%", y: "60%", w: "18%", h: "23%", dx: "-96px", dy: "130px", s: 1.03, z: 4 },
+        { x: "50%", y: "62%", w: "17%", h: "22%", dx: "132px", dy: "132px", s: 1.03, z: 4 }
+      ]
+    };
+
+    function renderSuppliers(v) {
+      const partName = currentPart(v)[0];
+      const suppliers = currentSuppliers(v);
+      if (state.supplier >= suppliers.length) state.supplier = 0;
+      $("supplierTitle").textContent = `${partName} · 供应商`;
+      $("supplierList").innerHTML = suppliers.map((s, i) => `
+        <button class="supplier-row ${i === state.supplier ? "active" : ""}" data-supplier="${i}">
+          <span>${i + 1}</span><span>${s[0]}</span><span class="bar"><i style="--w:${Math.min(100, s[1] * 2.2)}%"></i></span><span>${s[1]}%</span>
+        </button>
+      `).join("");
+      $("supplierList").querySelectorAll(".supplier-row").forEach(btn => {
+        btn.onclick = () => { state.supplier = Number(btn.dataset.supplier); renderRight(v); notify(`供应商：${currentSuppliers(v)[state.supplier][0]}`); };
+      });
+    }
+
+    function renderRight(v) {
+      const partName = currentPart(v)[0];
+      const suppliers = currentSuppliers(v);
+      const selectedSupplier = suppliers[state.supplier] || suppliers[0];
+      renderFramework(v);
+      renderSuppliers(v);
+      $("marketTitle").textContent = `${partName} · 市场份额`;
+      $("donutValue").textContent = `${selectedSupplier[1]}%`;
+      $("legend").innerHTML = suppliers.slice(0, 5).map((s, i) => `<span><b><i style="background:${["#23c3ff","#62db9a","#ffc44d","#8797aa","#2789ff"][i]}"></i>${s[0]}</b><em>${s[1]}%</em></span>`).join("");
+    }
+
+    function renderBom(v) {
+      $("bomTitle").textContent = v.bomTitle;
+      $("bomTrack").innerHTML = v.callouts.map((p, i) => `
+        <button class="bom-card part-tab ${i === state.part ? "active" : ""}" data-part="${i}">
+          <img class="part-thumb real" src="${partThumbSrc(v.key, p[0])}" alt="${p[0]}3D缩略图" loading="lazy">
+          <b>${p[0]}</b>
+        </button>
+      `).join("");
+      $("bomTrack").querySelectorAll(".bom-card").forEach(btn => {
+        btn.onclick = () => {
+          state.part = Number(btn.dataset.part);
+          state.highlightPart = state.part;
+          state.exploded = true;
+          state.supplier = 0;
+          render();
+          if (v.key === "wind") {
+            window.dispatchEvent(new CustomEvent("wind-part-focus", { detail: { name: v.callouts[state.part][0] } }));
+          }
+          notify(`已切换部件：${v.callouts[state.part][0]}`);
+        };
+      });
+    }
+
+    function render() {
+      const v = views[state.view];
+      renderNav();
+      renderTop(v);
+      renderStage(v);
+      renderRight(v);
+      renderBom(v);
+      history.replaceState(null, "", `#${v.key}`);
+    }
+
+    $("exportBtn").onclick = () => notify("已生成当前 BOM 导出任务");
+    $("compareBtn").onclick = () => notify("已加入横向对比");
+    $("searchBtn").onclick = () => notify("搜索面板：可接公司/部件检索");
+    $("fullBtn").onclick = () => document.documentElement.requestFullscreen?.();
+    $("settings").onclick = () => notify("设置：数据源、行情刷新、关注列表");
+    ["frameworkMore","supplierMore","marketMore"].forEach(id => $(id).onclick = () => notify("打开详情抽屉"));
+    window.addEventListener("wind-three-select", event => {
+      if (views[state.view].key !== "wind") return;
+      const partName = windThreeToPart[event.detail?.id];
+      if (!partName) return;
+      const partIndex = views[state.view].callouts.findIndex(item => item[0] === partName);
+      if (partIndex < 0) return;
+      state.part = partIndex;
+      state.highlightPart = partIndex;
+      state.exploded = true;
+      state.supplier = 0;
+      renderRight(views[state.view]);
+      renderBom(views[state.view]);
+      notify(`3D 部件：${partName}`);
+    });
+    $("combineBtn").onclick = event => {
+      event.stopPropagation();
+      state.exploded = false;
+      state.highlightPart = null;
+      state.supplier = 0;
+      render();
+      notify(views[state.view].key === "wind" ? "已组合为完整机舱结构" : "已回到 2D 合成主图");
+    };
+    $("explodeBtn").onclick = event => {
+      event.stopPropagation();
+      state.exploded = true;
+      if (views[state.view].key !== "wind") state.highlightPart = null;
+      render();
+      notify(views[state.view].key === "wind" ? "已展开部件结构" : "已爆炸为 3D 部件");
+    };
+    $("resetViewBtn").onclick = event => {
+      event.stopPropagation();
+      state.exploded = false;
+      state.highlightPart = null;
+      state.supplier = 0;
+      render();
+      notify("视图已复位");
+    };
+    $("stage").onclick = () => {
+      if (views[state.view].key === "wind") return;
+      state.exploded = !state.exploded;
+      if (!state.exploded) state.highlightPart = null;
+      renderStage(views[state.view]);
+      notify(state.exploded ? "主图已展开" : "主图已合并");
+    };
+
+    const initial = { wind: 0, pv: 1, storage: 2, offshore: 3 }[location.hash.replace("#", "")];
+    if (initial != null) state.view = initial;
+    render();
+    window.addEventListener("hashchange", () => {
+      const next = { wind: 0, pv: 1, storage: 2, offshore: 3 }[location.hash.replace("#", "")];
+      if (next == null || next === state.view) return;
+      state.view = next;
+      state.part = 0;
+      state.highlightPart = null;
+      state.tab = 0;
+      state.supplier = 0;
+      state.exploded = false;
+      render();
+    });
+    window.setTimeout(() => {
+      const stage = $("stage");
+      const status = $("threeStatus");
+      if (status?.dataset.state === "error") return;
+      if (views[state.view].key === "wind" && !stage.classList.contains("three-ready")) {
+        stage.classList.add("three-fallback");
+        status.dataset.state = "fallback";
+        status.textContent = "当前浏览器未成功渲染 WebGL 3D，已临时显示部件组合主图。建议使用本地 HTTP 或 Chrome 打开。";
+      }
+    }, 2500);
+  </script>
+  <script>
+    window.addEventListener("error", event => {
+      const source = String(event.filename || "");
+      const isThreeModule = source.includes("/assets/wind-three/") || source.includes("/vendor/three.module.js");
+      if (!isThreeModule) return;
+      const status = document.getElementById("threeStatus");
+      const stage = document.getElementById("stage");
+      if (stage) stage.classList.add("three-fallback");
+      if (status) {
+        status.dataset.state = "error";
+        status.textContent = `3D 模块加载失败：${event.message || "请使用本地 HTTP 地址打开页面"}`;
+      }
+    }, true);
+
+    window.addEventListener("unhandledrejection", event => {
+      const status = document.getElementById("threeStatus");
+      const stage = document.getElementById("stage");
+      if (!status || status.dataset.state === "ready") return;
+      const reason = event?.reason?.message || event?.reason || "未知异步错误";
+      if (stage) stage.classList.add("three-fallback");
+      status.dataset.state = "error";
+      status.textContent = `3D 模块异步加载失败：${reason}`;
+    });
+  </script>
+  <script src="assets/wind-three/wind-three-bundle.js?v=v3-20260715"></script>
+</body>
+</html>
